@@ -3,21 +3,29 @@ const connectDB = require("./config/database");
 const app = express();
 const User = require("./models/user");
 const port = 3000;
-
+app.use(express.json());
 app.post("/signup", async (req, res) => {
-  // creating a new instance of the user modal
-  const user = new User({
-    firstName: "sayyam",
-    lastName: "satti",
-    emailId: "sayyamsatti@gmail.com",
-    password: "sayyam123",
-  });
+  console.log(req.body);
+  const user = new User(req.body);
   try {
     await user.save();
     res.send("User added");
   } catch (err) {
     res.status(400).send("Error saving the user" + err.message);
   }
+  // creating a new instance of the user modal
+  // const user = new User({
+  //   firstName: "sayyam",
+  //   lastName: "satti",
+  //   emailId: "sayyamsatti@gmail.com",
+  //   password: "sayyam123",
+  // });
+  // try {
+  //   await user.save();
+  //   res.send("User added");
+  // } catch (err) {
+  //   res.status(400).send("Error saving the user" + err.message);
+  // }
 });
 
 connectDB()
