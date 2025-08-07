@@ -1,47 +1,3 @@
-// const express = require("express");
-// const connectDB = require("./config/database");
-// const app = express();
-// const User = require("./models/user");
-// const port = 3000;
-// app.use(express.json());
-// app.post("/signup", async (req, res) => {
-//   console.log(req.body);
-//   const user = new User(req.body);
-//   try {
-//     await user.save();
-//     res.send("User added");
-//   } catch (err) {
-//     res.status(400).send("Error saving the user" + err.message);
-//   }
-
-//   // get user by email
-
-//   app.get("/user", async (req, res) => {
-//     const userEmail = req.body.emailId;
-//     try {
-//       const user = await User.find({ emailId: userEmail });
-//       res.send(user);
-//     } catch (err) {
-//       res.status(400).send("something went wrong");
-//     }
-//   });
-
-//   // Feed API - GET /feed - get all the users from the database
-
-//   // app.get("/feed", (req, res) => {});
-// });
-
-// connectDB()
-//   .then(() => {
-//     console.log("database connected successfully");
-//     app.listen(port, () => {
-//       console.log(`Example app listening on port ${port}`);
-//     });
-//   })
-//   .catch((err) => {
-//     console.log("database cannot be connected");
-//   });
-
 const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
@@ -86,6 +42,40 @@ app.get("/feed", async (req, res) => {
     res.send(users);
   } catch (err) {
     res.status(500).send("Failed to fetch users: " + err.message);
+  }
+});
+// ✅ Optional: GET /feed - Get all users
+app.get("/feed", async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (err) {
+    res.status(500).send("Failed to fetch users: " + err.message);
+  }
+});
+// ✅ Delete a user from the database
+app.delete("/user", async (req, res) => {
+  const userId = req.body.userId;
+  try {
+    // const user = await User.findByIdAndDelete({_id: userId})
+    const user = await User.findByIdAndDelete(userId); // short cut
+    res.send("user deleted successfully");
+  } catch (err) {
+    res.status(400).send("Failed to fetch users: " + err.message);
+  }
+});
+
+// patch - update data at the user
+
+app.patch("/user", async (req, res) => {
+  const userId = req.body.userId;
+  const data = req.body;
+  try {
+    // await User.findByIdAndUpdate({_id: data})
+    await User.findByIdAndUpdate({ _id: userId }, data);
+    res.send("user updated successfully");
+  } catch (err) {
+    res.status(400).send("Something went wrong " + err.message);
   }
 });
 
