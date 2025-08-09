@@ -31,6 +31,29 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+// login api
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      // throw new Error("Email ID is not present in DB");
+      throw new Error("Invalid credentials");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) {
+      res.send("Login successfull");
+    } else {
+      // throw new Error("Password is not correct");
+      throw new Error("Invalid credentials");
+    }
+  } catch (err) {
+    res.status(400).send("login error " + err.message);
+  }
+});
 // ✅ GET /user - Find user by email (pass emailId as query param)
 app.get("/user", async (req, res) => {
   const userEmail = req.body.emailId; // Use query for GET
@@ -48,15 +71,6 @@ app.get("/user", async (req, res) => {
   }
 });
 
-// ✅ Optional: GET /feed - Get all users
-app.get("/feed", async (req, res) => {
-  try {
-    const users = await User.find({});
-    res.send(users);
-  } catch (err) {
-    res.status(500).send("Failed to fetch users: " + err.message);
-  }
-});
 // ✅ Optional: GET /feed - Get all users
 app.get("/feed", async (req, res) => {
   try {
