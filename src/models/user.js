@@ -1,5 +1,6 @@
 const { type } = require("express/lib/response");
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = mongoose.Schema(
   {
@@ -18,10 +19,18 @@ const userSchema = mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      validate(value) {
+        if (!validator.isEmail(value))
+          throw new Error("Invalid email address " + value);
+      },
     },
     password: {
       type: String,
       required: true,
+      validate(value) {
+        if (!validator.isStrongPassword(value))
+          throw new Error("Enter a strong password:  " + value);
+      },
     },
     age: {
       type: Number,
@@ -37,7 +46,12 @@ const userSchema = mongoose.Schema(
     },
     photoUrl: {
       type: String,
-      default: "https://www.flaticon.com/free-icon/user_149071",
+      default:
+        "https://www.ahsanhafeez.com/assets/ahsan-profile-hero-76d206eb.svg",
+      validate(value) {
+        if (!validator.isURL(value))
+          throw new Error("Invalid photo url " + value);
+      },
     },
     about: {
       type: String,
