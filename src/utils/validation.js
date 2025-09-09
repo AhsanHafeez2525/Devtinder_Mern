@@ -56,7 +56,26 @@ const validateEditProfileData = (req) => {
 
   return isEditAllowed;
 };
+
+const validateChangePasswordData = (req) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    throw new Error("Current password and new password are required");
+  }
+
+  if (currentPassword === newPassword) {
+    throw new Error("New password must be different from current password");
+  }
+
+  if (!validator.isStrongPassword(newPassword)) {
+    throw new Error(
+      "New password must be strong. It should contain at least 8 characters with uppercase, lowercase, number and symbol"
+    );
+  }
+};
 module.exports = {
   validateSignUpData,
   validateEditProfileData,
+  validateChangePasswordData,
 };

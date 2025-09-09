@@ -1,5 +1,9 @@
 const express = require("express");
-const { validateEditProfileData } = require("../utils/validation");
+const {
+  validateEditProfileData,
+  validateChangePasswordData,
+} = require("../utils/validation");
+const bcrypt = require("bcrypt");
 
 const profileRouter = express.Router(); // name can be anything for better understanding
 // const router = express.Router(); // In companies write like this and they are not mention authRouter
@@ -56,6 +60,47 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
   } catch (err) {
     console.error("Profile edit error:", err.message);
     res.status(400).send("Error updating profile: " + err.message);
+  }
+});
+
+// Change password
+profileRouter.patch("/profile/password", userAuth, async (req, res) => {
+  try {
+    console.log("Password change request received");
+    console.log("Request body:", req.body);
+
+    // Validate the request data
+    validateChangePasswordData(req);
+
+    const { currentPassword, newPassword } = req.body;
+    const loggedInUser = req.user;
+
+    // Verify current password
+    const isCurrentPasswordValid = await loggedInUser.validatePassword(
+      currentPassword
+    );
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        error: "Current password is incorrect",
+      });
+    }
+
+    // Hash the new password
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update the password
+    loggedInUser.password = hashedNewPassword;
+    await loggedInUser.save();
+
+    res.json({
+      message: `${loggedInUser.firstName}, your password has been updated successfully!`,
+    });
+  } catch (err) {
+    console.error("Password change error:", err.message);
+    res.status(400).json({
+      error: "Error changing password: " + err.message,
+    });
   }
 });
 
