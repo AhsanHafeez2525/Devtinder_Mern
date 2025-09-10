@@ -37,6 +37,7 @@ const userSchema = mongoose.Schema(
       type: Number,
       min: 18,
     },
+    // you cna use also enum for this same like connectionRequest.js, now you can use custom validation
     gender: {
       type: String,
       validate(value) {

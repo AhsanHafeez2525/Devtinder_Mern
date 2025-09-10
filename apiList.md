@@ -10,8 +10,13 @@ PATCH /profile/edit
 PATCH /profile/password
 
 ConnectionRequestRouter
-POST /request/send/interested/:userId
-POST /request/send/ignored/:userId
+
+1. POST /request/send/interested/:userId
+2. POST /request/send/ignored/:userId
+
+combine 1 and 2 into one api using status dynamic
+POST /request/send/:status/:userId
+
 POST /request/review/accepted/:requestId
 POST /request/review/rejected/:requestId
 
