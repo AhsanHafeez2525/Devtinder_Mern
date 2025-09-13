@@ -24,16 +24,22 @@ requestRouter.post(
           .json({ message: "Invalid status type" + status });
       }
 
+      // Check if user is trying to send request to themselves
+      if (fromUserId.toString() === toUserId.toString()) {
+        return res.status(400).json({ message: "Cannot send connection request to yourself" });
+      }
+
       const toUser = await User.findById(toUserId);
       if (!toUser) {
         return res.status(400).json({ message: "User not found" });
       }
+      
       // check if there is an existing ConnectionReq
-
       const existingConnectionRequest = await ConnectionRequest.findOne({
         $or: [
           {
-            fromUserId: toUserId,
+            fromUserId: fromUserId,
+            toUserId: toUserId,
           },
           {
             fromUserId: toUserId,
