@@ -5,6 +5,7 @@ const requestRouter = express.Router(); // name can be anything for better under
 // router.post("/signup", async (req, res) => {
 const { userAuth } = require("../middlewares/auth");
 const ConnectionRequest = require("../models/connectionRequest");
+const User = require("../models/user");
 // the fromUserId, the user is already login, so fromUserId comes from login token, it's same like when i swap left in tender in network tab is show recieverid
 requestRouter.post(
   "/request/send/:status/:toUserId",
@@ -21,6 +22,11 @@ requestRouter.post(
         return res
           .status(400)
           .json({ message: "Invalid status type" + status });
+      }
+
+      const toUser = await User.findById(toUserId);
+      if (!toUser) {
+        return res.status(400).json({ message: "User not found" });
       }
       // check if there is an existing ConnectionReq
 
