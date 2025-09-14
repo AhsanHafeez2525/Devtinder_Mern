@@ -24,8 +24,16 @@ userRouter.get("/user/requests/recieved", userAuth, async (req, res) => {
 userRouter.get("/user/connections", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;
-        const connections = await ConnectionRequest.find({ $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }] }).populate("fromUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]);
-        const data = connections.map((row) => row.fromUserId);
+        const connections = await ConnectionRequest.find({ $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }] }).populate("fromUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]).populate("toUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]);
+        const data = connections.map((row) =>{
+            if(row.fromUserId._id.toString() === loggedInUser._id.toString()){
+               return  row.toUserId;
+            }
+            return row.fromUserId;
+
+        }
+            
+            );
         res.json({ data });
     } catch (error) {
         res.status(400).send("ERROR: " + error.message);
