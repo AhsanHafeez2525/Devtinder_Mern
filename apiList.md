@@ -16,6 +16,7 @@ ConnectionRequestRouter
 
 combine 1 and 2 into one api using status dynamic
 POST /request/send/:status/:userId
+POST /request/review/:status/:requestId
 
 POST /request/review/accepted/:requestId
 POST /request/review/rejected/:requestId

@@ -60,9 +60,20 @@ requestRouter.post(
 
       const connectionRequestData = await connectionRequest.save();
       res.json({
-        message: "Connection request send Successfully",
+        message: req.user.firstName + "is " + status + " " + " in " + toUser.firstName,
         connectionRequestData,
       });
+    } catch (error) {
+      res.status(400).send("ERROR: " + error.message);
+    }
+  }
+);
+requestRouter.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+     
     } catch (error) {
       res.status(400).send("ERROR: " + error.message);
     }
