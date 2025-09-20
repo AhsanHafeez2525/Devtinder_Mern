@@ -51,6 +51,12 @@ userRouter.get("/feed", userAuth, async (req, res) => {
         // R -> Akshary -> rejected  R-> Elon -> accepted
 
         const loggedInUser = req.user;
+        // add pagination from 1 to 10
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        
         const connectionRequests = await ConnectionRequest.find({ $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }] }).select("fromUserId toUserId");
         
         // .populate("fromUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]).populate("toUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]);
@@ -67,7 +73,7 @@ const users = await User.find({
         $nin: Array.from(hideUsersfromFeed),
         $ne: loggedInUser._id 
     } 
-});
+}).select("firstName lastName photoUrl age gender about skills").skip(skip).limit(limit);
         res.json({ users });
     } catch (error) {
         res.status(400).send("ERROR: " + error.message);
