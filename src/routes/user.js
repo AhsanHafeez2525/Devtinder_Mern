@@ -54,7 +54,8 @@ userRouter.get("/feed", userAuth, async (req, res) => {
         // add pagination from 1 to 10
 
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        let limit = parseInt(req.query.limit) || 10;
+        limit = limit > 50 ? 50 : limit;
         const skip = (page - 1) * limit;
         
         const connectionRequests = await ConnectionRequest.find({ $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }] }).select("fromUserId toUserId");
@@ -74,7 +75,7 @@ const users = await User.find({
         $ne: loggedInUser._id 
     } 
 }).select("firstName lastName photoUrl age gender about skills").skip(skip).limit(limit);
-        res.json({ users });
+        res.json({ data: users });     // use this always beacuse it make standard
     } catch (error) {
         res.status(400).send("ERROR: " + error.message);
     }
