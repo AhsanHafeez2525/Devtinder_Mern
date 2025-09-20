@@ -39,5 +39,38 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
         res.status(400).send("ERROR: " + error.message);
     }
 });
+userRouter.get("/feed", userAuth, async (req, res) => {
+    try {
+        // User should see all the users cards except
+        // 0. hiw own card
+        // 1. his connections
+        // 2. ignored people
+        // 3. already sent the connection request
 
+        // Example: Rahul=[Akshay, Elon, Musk, Ronald, Donald, MS Dhoni, Virat]
+        // R -> Akshary -> rejected  R-> Elon -> accepted
+
+        const loggedInUser = req.user;
+        const connectionRequests = await ConnectionRequest.find({ $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }] }).select("fromUserId toUserId");
+        
+        // .populate("fromUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]).populate("toUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]);
+
+        const hideUsersfromFeed = new Set();             // always enter unique values in an array
+
+        connectionRequests.forEach((row) => {
+            hideUsersfromFeed.add(row.fromUserId.toString());
+            hideUsersfromFeed.add(row.toUserId.toString());
+        })
+console.log(hideUsersfromFeed)
+const users = await User.find({ 
+    _id: { 
+        $nin: Array.from(hideUsersfromFeed),
+        $ne: loggedInUser._id 
+    } 
+});
+        res.json({ users });
+    } catch (error) {
+        res.status(400).send("ERROR: " + error.message);
+    }
+});
 module.exports = userRouter;
