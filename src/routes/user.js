@@ -15,7 +15,7 @@ userRouter.get("/user/requests/recieved", userAuth, async (req, res) => {
         if(!requests) {
             return res.status(404).json({ message: "No requests found" });
         }
-        res.json({ requests });
+        res.json({data: requests });
     } catch (error) {
         res.status(400).send("ERROR: " + error.message);
     }
@@ -24,16 +24,16 @@ userRouter.get("/user/requests/recieved", userAuth, async (req, res) => {
 userRouter.get("/user/connections", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;
-        const connections = await ConnectionRequest.find({ $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }] }).populate("fromUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]).populate("toUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]);
-        const data = connections.map((row) =>{
+        const connections = await ConnectionRequest.find({ 
+            $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
+            status: "accepted"
+        }).populate("fromUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]).populate("toUserId",["firstName","lastName", "photoUrl", "age", "gender", "about", "skills"]);
+        const data = connections.map((row) => {
             if(row.fromUserId._id.toString() === loggedInUser._id.toString()){
                return  row.toUserId;
             }
             return row.fromUserId;
-
-        }
-            
-            );
+        });
         res.json({ data });
     } catch (error) {
         res.status(400).send("ERROR: " + error.message);
@@ -67,12 +67,11 @@ userRouter.get("/feed", userAuth, async (req, res) => {
         connectionRequests.forEach((row) => {
             hideUsersfromFeed.add(row.fromUserId.toString());
             hideUsersfromFeed.add(row.toUserId.toString());
-        })
+        });
 console.log(hideUsersfromFeed)
 const users = await User.find({ 
     _id: { 
-        $nin: Array.from(hideUsersfromFeed),
-        $ne: loggedInUser._id 
+        $nin: Array.from(hideUsersfromFeed).concat([loggedInUser._id])
     } 
 }).select("firstName lastName photoUrl age gender about skills").skip(skip).limit(limit);
         res.json({ data: users });     // use this always beacuse it make standard

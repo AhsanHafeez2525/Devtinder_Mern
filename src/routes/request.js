@@ -88,11 +88,11 @@ requestRouter.post(
     // requestId should be valid
      const loggedInUser = req.user;
      const requestId = req.params.requestId;
-     const connectionRequest = await ConnectionRequest.findById({
+     const connectionRequest = await ConnectionRequest.findOne({
       _id: requestId,
       toUserId: loggedInUser._id,
       status: "interested",
-     })
+     });
      if(!connectionRequest) {
       return res.status(404).json({ message: "Connection Request is not found" });
      }

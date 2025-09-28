@@ -2,8 +2,11 @@ const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
 const cookieParser = require("cookie-parser");
-const port = 3000;
 const cors = require("cors");
+const dotenv = require("dotenv");
+
+dotenv.config();
+// require('dotenv').config(".env")
 
 // Body parsing middleware
 app.use(express.json({ limit: "50mb" }));
@@ -34,7 +37,7 @@ app.use("/", userRouter);
 
 connectDB()
   .then(() => {
-    console.log("Database connected successfully");
+    const port = process.env.PORT || 5000;
     app.listen(port, () => {
       console.log(`Server listening on port ${port}`);
     });
