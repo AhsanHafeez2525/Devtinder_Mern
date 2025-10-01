@@ -4,6 +4,7 @@ const { userAuth } = require("../middlewares/auth");
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+const { sendOTPEmail, sendPasswordResetEmail } = require("../utils/emailService");
 const authRouter = express.Router(); // name can be anything for better understanding
 // const router = express.Router(); // In companies write like this and they are not mention authRouter
 // router.post("/signup", async (req, res) => {
@@ -100,17 +101,21 @@ authRouter.post("/forgot-password", async (req, res) => {
     
     await user.save();
 
-    // In a real application, you would send an email here with the reset link
-    // For now, we'll just return the token (in production, remove this)
-    console.log(`Password reset token for ${emailId}: ${resetToken}`);
-    console.log(`Reset link: http://localhost:5173/reset-password?token=${resetToken}`);
-
-    res.json({ 
-      message: "If the email exists in our system, you will receive a password reset link.",
-      // Remove this in production - only for development/testing
-      resetToken: resetToken,
-      resetLink: `http://localhost:5173/reset-password?token=${resetToken}`
-    });
+    // Send password reset email
+    const emailResult = await sendPasswordResetEmail(emailId, resetToken);
+    
+    if (emailResult.success) {
+      console.log(`Password reset email sent successfully to ${emailId}`);
+      res.json({ 
+        message: "If the email exists in our system, you will receive a password reset link."
+      });
+    } else {
+      console.error(`Failed to send password reset email to ${emailId}:`, emailResult.error);
+      // Still return success to user for security (don't reveal email sending failure)
+      res.json({ 
+        message: "If the email exists in our system, you will receive a password reset link."
+      });
+    }
 
   } catch (err) {
     res.status(400).json({ error: "Forgot password error: " + err.message });
@@ -143,15 +148,21 @@ authRouter.post("/generate-otp", async (req, res) => {
     
     await user.save();
 
-    // In a real application, you would send an SMS or email here with the OTP
-    // For now, we'll just return the OTP (in production, remove this)
-    console.log(`OTP for ${emailId}: ${otp}`);
-
-    res.json({ 
-      message: "If the email exists in our system, you will receive an OTP.",
-      // Remove this in production - only for development/testing
-      otp: otp
-    });
+    // Send OTP via email
+    const emailResult = await sendOTPEmail(emailId, otp);
+    
+    if (emailResult.success) {
+      console.log(`OTP sent successfully to ${emailId}`);
+      res.json({ 
+        message: "If the email exists in our system, you will receive an OTP."
+      });
+    } else {
+      console.error(`Failed to send OTP email to ${emailId}:`, emailResult.error);
+      // Still return success to user for security (don't reveal email sending failure)
+      res.json({ 
+        message: "If the email exists in our system, you will receive an OTP."
+      });
+    }
 
   } catch (err) {
     res.status(400).json({ error: "Generate OTP error: " + err.message });
