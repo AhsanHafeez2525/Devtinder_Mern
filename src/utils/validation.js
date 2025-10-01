@@ -74,8 +74,56 @@ const validateChangePasswordData = (req) => {
     );
   }
 };
+
+const validateForgotPasswordData = (req) => {
+  const { emailId } = req.body;
+
+  if (!emailId) {
+    throw new Error("Email is required");
+  }
+
+  if (!validator.isEmail(emailId)) {
+    throw new Error("Email is not valid");
+  }
+};
+
+const validateOTPData = (req) => {
+  const { emailId, otp } = req.body;
+
+  if (!emailId) {
+    throw new Error("Email is required");
+  }
+
+  if (!validator.isEmail(emailId)) {
+    throw new Error("Email is not valid");
+  }
+
+  if (!otp) {
+    throw new Error("OTP is required");
+  }
+
+  if (!validator.isNumeric(otp) || otp.length !== 6) {
+    throw new Error("OTP must be a 6-digit number");
+  }
+};
+
+const validateGenerateOTPData = (req) => {
+  const { emailId } = req.body;
+
+  if (!emailId) {
+    throw new Error("Email is required");
+  }
+
+  if (!validator.isEmail(emailId)) {
+    throw new Error("Email is not valid");
+  }
+};
+
 module.exports = {
   validateSignUpData,
   validateEditProfileData,
   validateChangePasswordData,
+  validateForgotPasswordData,
+  validateOTPData,
+  validateGenerateOTPData,
 };

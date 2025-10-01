@@ -4,9 +4,9 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const dotenv = require("dotenv");
+require("./utils/cronjob");
 
 dotenv.config();
-// require('dotenv').config(".env")
 
 // Body parsing middleware
 app.use(express.json({ limit: "50mb" }));

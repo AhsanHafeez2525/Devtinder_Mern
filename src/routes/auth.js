@@ -1,8 +1,9 @@
 const express = require("express");
-const { validateSignUpData } = require("../utils/validation");
+const { validateSignUpData, validateForgotPasswordData, validateOTPData, validateGenerateOTPData, validateChangePasswordData } = require("../utils/validation");
 const { userAuth } = require("../middlewares/auth");
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const authRouter = express.Router(); // name can be anything for better understanding
 // const router = express.Router(); // In companies write like this and they are not mention authRouter
 // router.post("/signup", async (req, res) => {
@@ -72,6 +73,162 @@ authRouter.post("/logout", async (req, res) => {
     expires: new Date(Date.now()),
   });
   res.send("Logout successful");
+});
+
+authRouter.post("/forgot-password", async (req, res) => {
+  try {
+    // Validate email data
+    validateForgotPasswordData(req);
+
+    const { emailId } = req.body;
+
+    // Check if user exists
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      // For security reasons, don't reveal if email exists or not
+      return res.json({ 
+        message: "If the email exists in our system, you will receive a password reset link." 
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    
+    // Set token and expiration (1 hour from now)
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+    
+    await user.save();
+
+    // In a real application, you would send an email here with the reset link
+    // For now, we'll just return the token (in production, remove this)
+    console.log(`Password reset token for ${emailId}: ${resetToken}`);
+    console.log(`Reset link: http://localhost:5173/reset-password?token=${resetToken}`);
+
+    res.json({ 
+      message: "If the email exists in our system, you will receive a password reset link.",
+      // Remove this in production - only for development/testing
+      resetToken: resetToken,
+      resetLink: `http://localhost:5173/reset-password?token=${resetToken}`
+    });
+
+  } catch (err) {
+    res.status(400).json({ error: "Forgot password error: " + err.message });
+  }
+});
+
+// Generate OTP API
+authRouter.post("/generate-otp", async (req, res) => {
+  try {
+    // Validate email data
+    validateGenerateOTPData(req);
+
+    const { emailId } = req.body;
+
+    // Check if user exists
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      // For security reasons, don't reveal if email exists or not
+      return res.json({ 
+        message: "If the email exists in our system, you will receive an OTP." 
+      });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Set OTP and expiration (10 minutes from now)
+    user.otp = otp;
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    
+    await user.save();
+
+    // In a real application, you would send an SMS or email here with the OTP
+    // For now, we'll just return the OTP (in production, remove this)
+    console.log(`OTP for ${emailId}: ${otp}`);
+
+    res.json({ 
+      message: "If the email exists in our system, you will receive an OTP.",
+      // Remove this in production - only for development/testing
+      otp: otp
+    });
+
+  } catch (err) {
+    res.status(400).json({ error: "Generate OTP error: " + err.message });
+  }
+});
+
+// Verify OTP API
+authRouter.post("/verify-otp", async (req, res) => {
+  try {
+    // Validate OTP data
+    validateOTPData(req);
+
+    const { emailId, otp } = req.body;
+
+    // Find user and check if OTP exists and is not expired
+    const user = await User.findOne({ 
+      emailId: emailId,
+      otp: otp,
+      otpExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ 
+        error: "Invalid or expired OTP" 
+      });
+    }
+
+    // Clear OTP after successful verification
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+
+    res.json({ 
+      message: "OTP verified successfully",
+      data: { emailId: user.emailId }
+    });
+
+  } catch (err) {
+    res.status(400).json({ error: "Verify OTP error: " + err.message });
+  }
+});
+
+// Change Password API
+authRouter.post("/change-password", userAuth, async (req, res) => {
+  try {
+    // Validate change password data
+    validateChangePasswordData(req);
+
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user._id;
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await user.validatePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ error: "Current password is incorrect" });
+    }
+
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    
+    // Update password
+    user.password = newPasswordHash;
+    await user.save();
+
+    res.json({ 
+      message: "Password changed successfully" 
+    });
+
+  } catch (err) {
+    res.status(400).json({ error: "Change password error: " + err.message });
+  }
 });
 
 module.exports = authRouter;

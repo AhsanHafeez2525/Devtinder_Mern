@@ -64,6 +64,18 @@ const userSchema = mongoose.Schema(
     skills: {
       type: [String],
     },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: Date,
+    },
+    otp: {
+      type: String,
+    },
+    otpExpires: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
