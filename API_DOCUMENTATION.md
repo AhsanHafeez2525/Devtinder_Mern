@@ -5,7 +5,7 @@
 ### 1. Generate OTP
 **POST** `/generate-otp`
 
-Generates a 6-digit OTP for the specified email address.
+Generates a 6-digit OTP for the specified email address. The OTP expires in 1 minute.
 
 **Request Body:**
 ```json
@@ -28,10 +28,40 @@ Generates a 6-digit OTP for the specified email address.
 
 ---
 
-### 2. Verify OTP
+### 2. Resend OTP
+**POST** `/resend-otp`
+
+Resends a new 6-digit OTP for the specified email address. The OTP expires in 1 minute. This endpoint includes rate limiting to prevent spam.
+
+**Request Body:**
+```json
+{
+  "emailId": "user@example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "If the email exists in our system, you will receive an OTP."
+}
+```
+
+**Error Responses:**
+- `429 Too Many Requests`: When trying to resend OTP before the current one expires
+- `400 Bad Request`: When email validation fails
+
+**Validation:**
+- Email must be valid format
+- Email is required
+- Rate limited: Cannot resend OTP if a valid (non-expired) OTP already exists
+
+---
+
+### 3. Verify OTP
 **POST** `/verify-otp`
 
-Verifies the 6-digit OTP for the specified email address.
+Verifies the 6-digit OTP for the specified email address. The OTP must be verified within 1 minute of generation.
 
 **Request Body:**
 ```json

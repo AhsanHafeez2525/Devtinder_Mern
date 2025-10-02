@@ -37,7 +37,7 @@ const sendOTPEmail = async (emailId, otp) => {
             <div style="font-size: 32px; font-weight: bold; color: #007bff; letter-spacing: 5px; margin: 20px 0;">
               ${otp}
             </div>
-            <p style="color: #666; margin: 10px 0;">This OTP is valid for 10 minutes.</p>
+            <p style="color: #666; margin: 10px 0;">This OTP is valid for 1 minute.</p>
           </div>
           <div style="text-align: center; color: #888; font-size: 14px;">
             <p>If you didn't request this OTP, please ignore this email.</p>

@@ -1,5 +1,5 @@
 const express = require("express");
-const { validateSignUpData, validateForgotPasswordData, validateOTPData, validateGenerateOTPData, validateChangePasswordData } = require("../utils/validation");
+const { validateSignUpData, validateForgotPasswordData, validateOTPData, validateGenerateOTPData, validateChangePasswordData, validateResendOTPData } = require("../utils/validation");
 const { userAuth } = require("../middlewares/auth");
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
@@ -76,54 +76,8 @@ authRouter.post("/logout", async (req, res) => {
   res.send("Logout successful");
 });
 
-authRouter.post("/forgot-password", async (req, res) => {
-  try {
-    // Validate email data
-    validateForgotPasswordData(req);
-
-    const { emailId } = req.body;
-
-    // Check if user exists
-    const user = await User.findOne({ emailId: emailId });
-    if (!user) {
-      // For security reasons, don't reveal if email exists or not
-      return res.json({ 
-        message: "If the email exists in our system, you will receive a password reset link." 
-      });
-    }
-
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    
-    // Set token and expiration (1 hour from now)
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
-    
-    await user.save();
-
-    // Send password reset email
-    const emailResult = await sendPasswordResetEmail(emailId, resetToken);
-    
-    if (emailResult.success) {
-      console.log(`Password reset email sent successfully to ${emailId}`);
-      res.json({ 
-        message: "If the email exists in our system, you will receive a password reset link."
-      });
-    } else {
-      console.error(`Failed to send password reset email to ${emailId}:`, emailResult.error);
-      // Still return success to user for security (don't reveal email sending failure)
-      res.json({ 
-        message: "If the email exists in our system, you will receive a password reset link."
-      });
-    }
-
-  } catch (err) {
-    res.status(400).json({ error: "Forgot password error: " + err.message });
-  }
-});
-
 // Generate OTP API
-authRouter.post("/generate-otp", async (req, res) => {
+authRouter.post("/forgot-password", async (req, res) => {
   try {
     // Validate email data
     validateGenerateOTPData(req);
@@ -142,9 +96,9 @@ authRouter.post("/generate-otp", async (req, res) => {
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // Set OTP and expiration (10 minutes from now)
+    // Set OTP and expiration (1 minute from now)
     user.otp = otp;
-    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    user.otpExpires = new Date(Date.now() + 1 * 60 * 1000); // 1 minute
     
     await user.save();
 
@@ -202,6 +156,60 @@ authRouter.post("/verify-otp", async (req, res) => {
 
   } catch (err) {
     res.status(400).json({ error: "Verify OTP error: " + err.message });
+  }
+});
+
+// Resend OTP API
+authRouter.post("/resend-otp", async (req, res) => {
+  try {
+    // Validate email data
+    validateResendOTPData(req);
+
+    const { emailId } = req.body;
+
+    // Check if user exists
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      // For security reasons, don't reveal if email exists or not
+      return res.json({ 
+        message: "If the email exists in our system, you will receive an OTP." 
+      });
+    }
+
+    // Check if there's already a valid OTP (not expired)
+    if (user.otp && user.otpExpires && user.otpExpires > new Date()) {
+      return res.status(429).json({ 
+        error: "Please wait before requesting another OTP. You can request a new OTP after the current one expires." 
+      });
+    }
+
+    // Generate new 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Set OTP and expiration (1 minute from now)
+    user.otp = otp;
+    user.otpExpires = new Date(Date.now() + 1 * 60 * 1000); // 1 minute
+    
+    await user.save();
+
+    // Send OTP via email
+    const emailResult = await sendOTPEmail(emailId, otp);
+    
+    if (emailResult.success) {
+      console.log(`OTP resent successfully to ${emailId}`);
+      res.json({ 
+        message: "If the email exists in our system, you will receive an OTP."
+      });
+    } else {
+      console.error(`Failed to resend OTP email to ${emailId}:`, emailResult.error);
+      // Still return success to user for security (don't reveal email sending failure)
+      res.json({ 
+        message: "If the email exists in our system, you will receive an OTP."
+      });
+    }
+
+  } catch (err) {
+    res.status(400).json({ error: "Resend OTP error: " + err.message });
   }
 });
 

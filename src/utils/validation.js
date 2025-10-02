@@ -119,6 +119,18 @@ const validateGenerateOTPData = (req) => {
   }
 };
 
+const validateResendOTPData = (req) => {
+  const { emailId } = req.body;
+
+  if (!emailId) {
+    throw new Error("Email is required");
+  }
+
+  if (!validator.isEmail(emailId)) {
+    throw new Error("Email is not valid");
+  }
+};
+
 module.exports = {
   validateSignUpData,
   validateEditProfileData,
@@ -126,4 +138,5 @@ module.exports = {
   validateForgotPasswordData,
   validateOTPData,
   validateGenerateOTPData,
+  validateResendOTPData,
 };
