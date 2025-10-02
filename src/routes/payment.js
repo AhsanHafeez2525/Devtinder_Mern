@@ -77,4 +77,15 @@ const isWbeHookValid = validateWebhookSignature(JSON.stringify(req.body), req.he
   }
 });
 
+paymentRouter.get("/payment/premium"), userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    if(user.isPremium) {
+      return res.status(200).json({message: "User is already premium"});
+    }
+  } catch (error) {
+    res.status(400).send("ERROR: " + error.message);
+  }
+}
+
 module.exports = paymentRouter;
