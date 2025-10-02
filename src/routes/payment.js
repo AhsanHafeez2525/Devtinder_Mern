@@ -79,9 +79,9 @@ const isWbeHookValid = validateWebhookSignature(JSON.stringify(req.body), req.he
 
 paymentRouter.get("/payment/premium"), userAuth, async (req, res) => {
   try {
-    const user = req.user;
+    const user = req.user.toJSON();
     if(user.isPremium) {
-      return res.status(200).json({message: "User is already premium"});
+      return res.json({...user});
     }
   } catch (error) {
     res.status(400).send("ERROR: " + error.message);
