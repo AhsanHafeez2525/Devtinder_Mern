@@ -6,6 +6,7 @@ const cors = require("cors");
 const http = require("http");
 const socketio = require("socket.io");
 const dotenv = require("dotenv");
+const { initializeSocket } = require("./utils/socket");
 require("./utils/cronjob");
 
 
@@ -15,7 +16,10 @@ dotenv.config();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
+
 const server = http.createServer(app);
+initializeSocket(server);
+
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173", 
