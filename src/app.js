@@ -3,6 +3,8 @@ const connectDB = require("./config/database");
 const app = express();
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const http = require("http");
+const socketio = require("socket.io");
 const dotenv = require("dotenv");
 require("./utils/cronjob");
 
@@ -13,6 +15,7 @@ dotenv.config();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
+const server = http.createServer(app);
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173", 
@@ -61,11 +64,12 @@ app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
+app.use("/", paymentRouter);
 
 connectDB()
   .then(() => {
     const port = process.env.PORT || 5000;
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`Server listening on port ${port}`);
     });
   })

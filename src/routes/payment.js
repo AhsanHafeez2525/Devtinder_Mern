@@ -41,10 +41,7 @@ paymentRouter.post("/payment/create", userAuth, async (req, res) => {
     res.json({...paymentData.toJSON(), keyID: process.env.RAZORPAY_KEY_ID});
   } catch (error) {
     res.status(400).send("ERROR: " + error.message);
-  } finally {
-    res.status(200).send("Payment");
   }
-  res.send("Payment")
 });
 
 paymentRouter.post("/payment/webhook", userAuth, async (req, res) => {
@@ -77,7 +74,7 @@ const isWbeHookValid = validateWebhookSignature(JSON.stringify(req.body), req.he
   }
 });
 
-paymentRouter.get("/payment/premium"), userAuth, async (req, res) => {
+paymentRouter.get("/payment/premium", userAuth, async (req, res) => {
   try {
     const user = req.user.toJSON();
     if(user.isPremium) {
@@ -86,6 +83,6 @@ paymentRouter.get("/payment/premium"), userAuth, async (req, res) => {
   } catch (error) {
     res.status(400).send("ERROR: " + error.message);
   }
-}
+});
 
 module.exports = paymentRouter;

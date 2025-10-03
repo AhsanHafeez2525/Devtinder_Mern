@@ -76,6 +76,18 @@ const userSchema = mongoose.Schema(
     otpExpires: {
       type: Date,
     },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
+    membershipType: {
+      type: String,
+      enum: ["silver", "gold", "platinum"],
+      default: "silver",
+    },
+    membershipExpires: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
