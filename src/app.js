@@ -6,6 +6,7 @@ const cors = require("cors");
 const http = require("http");
 const socketio = require("socket.io");
 const dotenv = require("dotenv");
+const chatRouter = require("./routes/chat");
 const { initializeSocket } = require("./utils/socket");
 require("./utils/cronjob");
 
@@ -69,6 +70,7 @@ app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
 app.use("/", paymentRouter);
+app.use("/", chatRouter);
 
 connectDB()
   .then(() => {
